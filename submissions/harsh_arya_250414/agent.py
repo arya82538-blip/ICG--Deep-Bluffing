@@ -2,12 +2,14 @@ import random
 import itertools
 from collections import Counter
 
-
+# =====================================================================
+# CORE ENGINE DATA & DICTIONARIES
+# =====================================================================
 RANKS = {"2": 2, "3": 3, "4": 4, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "T": 10, "J": 11, "Q": 12, "K": 13, "A": 14}
 SUITS = ["h", "d", "c", "s"]
 RANK_CHARS = ["2", "3", "4", "5", "6", "7", "8", "9", "T", "J", "Q", "K", "A"]
 
-
+# Helper functions for processing card strings
 def get_rank(card): return RANKS[card[0]]
 def get_suit(card): return card[1]
 def create_deck(): return [rank + suit for rank in RANK_CHARS for suit in SUITS]
@@ -25,7 +27,9 @@ def is_straight(cards):
         if ranks[i + 1] != ranks[i] + 1: return False
     return True
 
-
+# =====================================================================
+# PURE PYTHON HAND EVALUATOR (No External Libraries Used)
+# =====================================================================
 def evaluate_five_cards(cards):
     ranks = get_all_ranks(cards)
     counter = rank_counter(cards)
@@ -73,7 +77,9 @@ def best_hand(cards):
         if best is None or score > best: best = score
     return best
 
-
+# =====================================================================
+# MONTE CARLO SIMULATION ENGINE
+# =====================================================================
 def estimate_win_probability(hole_cards, community_cards, simulations=400):
     wins, ties = 0, 0
     base_deck = create_deck()
@@ -95,14 +101,18 @@ def estimate_win_probability(hole_cards, community_cards, simulations=400):
         
     return (wins + 0.5 * ties) / simulations
 
-
+# =====================================================================
+# SUBMISSION BASE CLASS
+# =====================================================================
 class BasePokerBot:
     def __init__(self, name):
         self.name = name
     def get_action(self, hole_cards, community_cards, pot_size, stack_size, amount_to_call, legal_actions):
         raise NotImplementedError("Override this method")
 
-
+# =====================================================================
+# YOUR CUSTOM AGENT IMPLEMENTATION
+# =====================================================================
 class CustomPokerBot(BasePokerBot):
     def __init__(self, name="DeepBluff"):
         super().__init__(name)
@@ -111,7 +121,9 @@ class CustomPokerBot(BasePokerBot):
         # Fallback guard rule
         if not legal_actions: return "FOLD"
         
-       
+        # -----------------------------------------------------------------
+        # Stage A: PRE-FLOP DECISION TREE (No community cards out yet)
+        # -----------------------------------------------------------------
         if len(community_cards) == 0:
             r1, r2 = get_rank(hole_cards[0]), get_rank(hole_cards[1])
             is_pair = (r1 == r2)
@@ -132,7 +144,9 @@ class CustomPokerBot(BasePokerBot):
                 # Trash hands -> Check if free, else Fold
                 return "CALL" if amount_to_call == 0 else ("FOLD" if "FOLD" in legal_actions else legal_actions[0])
 
-        
+        # -----------------------------------------------------------------
+        # Stage B: POST-FLOP MATHEMATICAL MATRICES (Flop, Turn, River)
+        # -----------------------------------------------------------------
         street = len(community_cards)
         # Optimize simulation depth dynamically based on street compute budget
         simulations = 400 if street == 3 else 600
